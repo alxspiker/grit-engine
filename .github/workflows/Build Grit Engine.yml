@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     # Checkout the Git repository with submodules
@@ -19,57 +19,26 @@ jobs:
       with:
         submodules: recursive
 
-    # Install SVN client
-    - name: Install SVN
+    # Install dependencies
+    - name: Install dependencies
       run: |
-        choco install svn --yes
+        sudo apt-get update
+        sudo apt-get install -y subversion g++ make pkg-config gdb valgrind \
+        libfreeimage-dev libzzip-dev libfreetype6-dev libglu1-mesa-dev \
+        libxt-dev libxaw7-dev libglew-dev libxrandr-dev \
+        libgoogle-perftools-dev libopenal-dev libreadline-dev freeglut3-dev \
+        nvidia-cg-toolkit libvorbis-dev xutils-dev libicu-dev
+
     # Checkout SVN media directory
     - name: Checkout SVN media directory
       run: |
         svn checkout https://svn.code.sf.net/p/gritengine/code/trunk media
-    # Install Visual Studio 2017
-    - name: Setup MSBuild and Visual Studio
-      uses: microsoft/setup-msbuild@v2
-      with:
-        vs-version: '15.0' # Visual Studio 2017
 
-    # Install Windows SDK 10.0.15063
-    - name: Install Windows SDK 10.0.15063
-      run: |
-        $url = "https://go.microsoft.com/fwlink/?linkid=851955"
-        $output = "$env:TEMP\winsdksetup.exe"
-        Invoke-WebRequest -Uri $url -OutFile $output
-        Start-Process -FilePath $output -ArgumentList "/quiet", "/norestart" -Wait
-
-    # Set DXSDK_DIR
-    - name: Set DXSDK_DIR
-      run: |
-        echo "DXSDK_DIR=$HOME\cache\" >> $env:GITHUB_ENV
-
-    # Cache DXSDK
-    - name: Cache DXSDK
-      id: cache-dxsdk
-      uses: actions/cache@v4
-      with:
-        path: ~\cache
-        key: dxsdk-jun10
-
-    # Extract DirectX SDK if cache miss
-    - name: Extract DirectX SDK
-      if: steps.cache-dxsdk.outputs.cache-hit != 'true'
-      run: |
-        $url = "https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe"
-        $exe = "_DX2010_.exe"
-        Invoke-WebRequest -Uri $url -OutFile $exe
-        7z x $exe DXSDK/Include -o_DX2010_
-        7z x $exe DXSDK/Lib/x86 -o_DX2010_
-        Move-Item .\_DX2010_\DXSDK $HOME\cache
-        Remove-Item -Recurse -Force _DX*_ , $exe
-
-    # Build the solution with Normal configuration
+    # Build the project
     - name: Build Grit Engine
       run: |
-        msbuild grit-engine.sln /p:Configuration=Normal /p:Platform="Win32" /m
+        make -j $(nproc)
+
     # Commit build artifacts to master branch
     - name: Commit build changes
       run: |
