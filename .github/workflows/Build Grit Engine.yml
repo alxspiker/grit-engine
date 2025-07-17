@@ -21,12 +21,10 @@ jobs:
     - name: Install SVN
       run: |
         choco install svn --yes
-
     # Checkout SVN media directory
     - name: Checkout SVN media directory
       run: |
         svn checkout https://svn.code.sf.net/p/gritengine/code/trunk media
-
     # Install Visual Studio 2017
     - name: Setup MSBuild and Visual Studio
       uses: microsoft/setup-msbuild@v2
@@ -39,15 +37,13 @@ jobs:
         $url = "https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe"
         $output = "$env:TEMP\DXSDK_Jun10.exe"
         Invoke-WebRequest -Uri $url -OutFile $output
-        Start-Process -FilePath $output -ArgumentList "/Q" -Wait
+        Start-Process -FilePath $output -Wait
         $env:DXSDK_DIR = "C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)"
         [System.Environment]::SetEnvironmentVariable("DXSDK_DIR", $env:DXSDK_DIR, [System.EnvironmentVariableTarget]::Process)
-
     # Build the solution with Normal configuration
     - name: Build Grit Engine
       run: |
         msbuild grit-engine.sln /p:Configuration=Normal /p:Platform="Win32" /m
-
     # Commit build artifacts to master branch
     - name: Commit build changes
       run: |
