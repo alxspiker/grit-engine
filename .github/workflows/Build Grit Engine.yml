@@ -31,15 +31,31 @@ jobs:
       with:
         vs-version: '15.0' # Visual Studio 2017
 
-    # Install DirectX9 SDK
-    - name: Install DirectX9 SDK
+    # Set DXSDK_DIR
+    - name: Set DXSDK_DIR
+      run: |
+        echo "DXSDK_DIR=$HOME\cache\" >> $env:GITHUB_ENV
+
+    # Cache DXSDK
+    - name: Cache DXSDK
+      id: cache-dxsdk
+      uses: actions/cache@v4
+      with:
+        path: ~\cache
+        key: dxsdk-jun10
+
+    # Extract DirectX SDK if cache miss
+    - name: Extract DirectX SDK
+      if: steps.cache-dxsdk.outputs.cache-hit != 'true'
       run: |
         $url = "https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe"
-        $output = "$env:TEMP\DXSDK_Jun10.exe"
-        Invoke-WebRequest -Uri $url -OutFile $output
-        Start-Process -FilePath $output -Wait
-        $env:DXSDK_DIR = "C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)"
-        [System.Environment]::SetEnvironmentVariable("DXSDK_DIR", $env:DXSDK_DIR, [System.EnvironmentVariableTarget]::Process)
+        $exe = "_DX2010_.exe"
+        Invoke-WebRequest -Uri $url -OutFile $exe
+        7z x $exe DXSDK/Include -o_DX2010_
+        7z x $exe DXSDK/Lib/x86 -o_DX2010_
+        Move-Item .\_DX2010_\DXSDK $HOME\cache
+        Remove-Item -Recurse -Force _DX*_ , $exe
+
     # Build the solution with Normal configuration
     - name: Build Grit Engine
       run: |
