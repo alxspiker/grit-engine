@@ -13,9 +13,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    # Checkout the Git repository
+    # Checkout the Git repository with submodules
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     # Install SVN client
     - name: Install SVN
@@ -30,6 +32,14 @@ jobs:
       uses: microsoft/setup-msbuild@v2
       with:
         vs-version: '15.0' # Visual Studio 2017
+
+    # Install Windows SDK 10.0.15063
+    - name: Install Windows SDK 10.0.15063
+      run: |
+        $url = "https://go.microsoft.com/fwlink/?linkid=851955"
+        $output = "$env:TEMP\winsdksetup.exe"
+        Invoke-WebRequest -Uri $url -OutFile $output
+        Start-Process -FilePath $output -ArgumentList "/quiet", "/norestart" -Wait
 
     # Set DXSDK_DIR
     - name: Set DXSDK_DIR
