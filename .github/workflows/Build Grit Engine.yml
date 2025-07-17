@@ -39,7 +39,7 @@ jobs:
         $url = "https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe"
         $output = "$env:TEMP\DXSDK_Jun10.exe"
         Invoke-WebRequest -Uri $url -OutFile $output
-        Start-Process -FilePath $output -ArgumentList "/quiet" -Wait
+        Start-Process -FilePath $output -ArgumentList "/Q" -Wait
         $env:DXSDK_DIR = "C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)"
         [System.Environment]::SetEnvironmentVariable("DXSDK_DIR", $env:DXSDK_DIR, [System.EnvironmentVariableTarget]::Process)
 
